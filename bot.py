@@ -135,10 +135,10 @@ async def tarefa_principal():
         answers = ["Gemini", "Gemini", "Gemini", "Gemini", "Gemini"]
 
     print(f">> creating poll: {question_text}")
-    poll = discord.Poll(question_text, datetime.timedelta(hours=24))
+    poll = discord.Poll(text=question_text, duration=datetime.timedelta(hours=24))
 
     for answer in answers:
-        poll.add_answer(answer)
+        poll.add_answer(text=answer)
 
     print(">> saving history...")
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -153,3 +153,4 @@ async def on_ready():
 
 
 client.run(DISCORD_TOKEN)
+
