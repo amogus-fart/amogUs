@@ -139,6 +139,8 @@ async def tarefa_principal():
 
     for answer in answers:
         poll.add_answer(text=answer)
+        
+    await channel.send(poll=poll)
 
     print(">> saving history...")
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -153,4 +155,3 @@ async def on_ready():
 
 
 client.run(DISCORD_TOKEN)
-
