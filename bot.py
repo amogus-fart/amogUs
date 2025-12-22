@@ -66,7 +66,7 @@ gemini = genai.GenerativeModel('gemini-2.5-flash')
 
 creds_dict = json.loads(GOOGLE_CREDS_JSON)
 gc = gsheets.service_account_from_dict(creds_dict)
-sh = gc.open("amongUs")
+sh = gc.open_by_key("1qjtkaB2nqfL5cBqO50Gtqr6gaFdZ067vgG7BtKKp-Ak")
 sheet = sh.sheet1
 
 async def tarefa_principal():
@@ -150,5 +150,6 @@ async def tarefa_principal():
 @client.event
 async def on_ready():
     await tarefa_principal()
+
 
 client.run(DISCORD_TOKEN)
