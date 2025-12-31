@@ -108,6 +108,8 @@ async def tarefa_principal():
         EXEMPLOS: "Quem é o mais provável de comer o Craig?" "Quem quer tibitar com o The Weeknd?"
         """
 
+    task = "Cria uma pergunta relativa ao ano de 2026 (hoje é dia de ano novo!)"
+
     print(">> asking gemini...")
     prompt = f"""
     Age como um bot de Discord que cria perguntas para o jogo "Quem é mais provável".
@@ -155,6 +157,7 @@ async def on_ready():
 
 
 client.run(DISCORD_TOKEN)
+
 
 
 
