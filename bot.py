@@ -61,59 +61,81 @@ INTERESTS = """
 
 intents = discord.Intents.default()
 client = discord.Client(intents=intents)
+intents.message_content = True
+
 genai.configure(api_key=GEMINI_KEY)
 gemini = genai.GenerativeModel('gemini-2.5-flash')
 
 creds_dict = json.loads(GOOGLE_CREDS_JSON)
 gc = gsheets.service_account_from_dict(creds_dict)
 sh = gc.open_by_key("1qjtkaB2nqfL5cBqO50Gtqr6gaFdZ067vgG7BtKKp-Ak")
-sheet = sh.sheet1
+sheet_history = sh.sheet1
+sheet_calendar = sh.worksheet("calendario")
 
 async def tarefa_principal():
     await client.wait_until_ready()
     channel = client.get_channel(CHANNEL_ID)
 
     print("--- starting new day ---")
-    print(">> reading history sheet...")
-    question_history = sheet.col_values(1)
 
-    roll = random.randint(1,5)
-    task = ""
-    if roll == 1:
-        task = """Cria uma pergunta GENÉRICA de situação do dia-a-dia, azar ou comportamento social.
-        EXEMPLOS: "Quem é mais provável de ser atropelado por uma trotinete?", "Quem é o mais provável de repetir um ano na universidade?"
-        """
-    elif roll == 2:
-        task = """Cria uma pergunta engraçada que inclua o nome de pelo menos um dos participantes.
-        EXEMPLOS: "Quem é o mais provável de dar uma chapada ao Bruno?", "Quem é que gosta mais do Tomás?"
-        """
-    elif roll == 3:
-        task = f"""Cria uma pergunta baseada num destes interesses.
-        LISTA DE INTERESSES:
-        {INTERESTS}
-        EXEMPLOS: "Quem é o mais provável de se borrar todo no FNAF?", "Quem é que grita mais nas calls?"
-        """
-    elif roll == 4:
-        task  = f"""Cria uma pergunta baseada numa destas palavras/coisas (fazem parte da 'lore' do grupo).
-        {LORE}
-        EXEMPLOS: "Quem é o mais parecido com o Pêssego?", "Quem é o mais provável de tibitar amanhã?"
-        """
-    else:
-        task = f"""Cria uma pergunta absurda, surreal e estúpida (brainrot/shipost).
-        Podes misturar escolher coisas da lista de interesses ou da lista da lore, ou até misturar. O objetivo é ser muito engraçado.
-        LISTA DE INTERESSES:
-        {INTERESTS}
-        LISTA DA LORE:
-        {LORE}
-        EXEMPLOS: "Quem é o mais provável de comer o Craig?" "Quem quer tibitar com o The Weeknd?"
-        """
+    day_name = None
+    task = None
+    category_log = "UNKNOWN"
+
+    today = datetime.datetime.now().strftime("%d/%m")
+    all_events = sheet_calendar.get_all_values()
+
+    for row in all_events:
+        if row[0] == today:
+            day_name = row[1]
+            if len(row) > 2 and row[2].strip():
+                category_log = "DIA"
+                task = f"""
+                Cria uma pergunta relativa ao tema do dia de hoje (cada dia tem um tema):
+                "{day_name}"
+                Contexto sobre o dia: {row[2]}
+                A tua pergunta TEM de ser sobre este evento/tema específico e usar o contexto fornecido. Não te esqueças que as respostas possíveis serão o nome de cada participante.
+                """
+                break
+
+    # ANUNCIAR DIA
+    await channel.send(f"# 📅 {day_name}")
+
+    print(">> reading history sheet...")
+    question_history = sheet_history.col_values(1)
+
+    if not task:
+        roll = random.randint(1,5)
+        if roll == 1:
+            category_log = "GENÉRICA"
+            task = """Cria uma pergunta GENÉRICA de situação do dia-a-dia, azar ou comportamento social. Lembra-te que os participantes não interagem uns com os outros pessoalmente (apenas online).
+            EXEMPLOS: "Quem é mais provável de ser atropelado por uma trotinete?", "Quem é o mais provável de repetir um ano na universidade?"
+            """
+        elif roll == 2:
+            category_log = "PESSOAL"
+            task = """Cria uma pergunta engraçada que inclua o nome de pelo menos um dos participantes.
+            EXEMPLOS: "Quem é o mais provável de dar uma chapada ao Bruno?", "Quem é que gosta mais do Tomás?"
+            """
+        elif roll == 3 or roll == 4:
+            category_log = "INTERESSES"
+            task = f"""Cria uma pergunta baseada num destes interesses.
+            LISTA DE INTERESSES:
+            {INTERESTS}
+            EXEMPLOS: "Quem é o mais provável de se borrar todo no FNAF?", "Quem é que grita mais nas calls?"
+            """
+        else:
+            category_log = "LORE"
+            task  = f"""Cria uma pergunta baseada numa destas palavras/coisas (fazem parte da 'lore' do grupo).
+            {LORE}
+            EXEMPLOS: "Quem é o mais parecido com o Pêssego?", "Quem é o mais provável de tibitar amanhã?"
+            """
 
     print(">> asking gemini...")
     prompt = f"""
     Age como um bot de Discord que cria perguntas para o jogo "Quem é mais provável".
     Participantes: 5 amigos portugueses (Bruno, Rodrigo, Tomás, Rafael, Bernardo), ~18 anos. Conhecem se online há ~5 anos, mas já estiveram juntos pessoalmente algumas vezes.
     
-    Histórico de perguntas já feitas (NÃO REPETIR NEM USAR COMO INSPIRAÇÃO):
+    Histórico de perguntas já feitas (NÃO REPETIR):
     {question_history}
 
     OBJETIVO ATUAL:
@@ -132,7 +154,7 @@ async def tarefa_principal():
     except Exception as e:
         print(f"gemini error: {e}")
         question_text = "Quem é mais provável ter parado de funcionar hoje?"
-        answers = ["Gemini", "Gemini", "Gemini", "Gemini", "Gemini"]
+        answers = ["Gemini", "Geminii", "Geminiii", "Geminiiii", "Geminiiiii"]
 
     print(f">> creating poll: {question_text}")
     poll = discord.Poll(question=question_text,duration=datetime.timedelta(hours=24))
@@ -144,7 +166,7 @@ async def tarefa_principal():
 
     print(">> saving history...")
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    sheet.append_row([question_text, timestamp])
+    sheet_history.append_row([question_text, timestamp, category_log])
 
     print("--- FOI CARALHO? ---")
     await client.close()
@@ -155,8 +177,3 @@ async def on_ready():
 
 
 client.run(DISCORD_TOKEN)
-
-
-
-
-
