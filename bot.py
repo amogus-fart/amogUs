@@ -1,6 +1,6 @@
-import discord
-import google.generativeai as genai
-import gspread as gsheets
+import discord # type: ignore
+import google.generativeai as genai # type: ignore
+import gspread as gsheets # type: ignore
 import os
 import asyncio
 import json
