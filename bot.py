@@ -157,7 +157,7 @@ async def tarefa_principal():
         answers = ["Gemini", "Geminii", "Geminiii", "Geminiiii", "Geminiiiii"]
 
     print(f">> creating poll: {question_text}")
-    poll = discord.Poll(question=question_text,duration=datetime.timedelta(hours=24))
+    poll = discord.Poll(question=question_text,duration=datetime.timedelta(hours=23))
 
     for answer in answers:
         poll.add_answer(text=answer)
@@ -177,3 +177,4 @@ async def on_ready():
 
 
 client.run(DISCORD_TOKEN)
+
