@@ -12,7 +12,13 @@ GEMINI_KEY = os.environ["GEMINI_KEY"]
 CHANNEL_ID = int(os.environ["CHANNEL_ID"])
 GOOGLE_CREDS_JSON = os.environ["GOOGLE_CREDS_JSON"]
 
-AMIGOS = ["Bernardo", "Bruno", "Rafael", "Rodrigo", "Tomás"]
+AMIGOS = {
+    "Bernardo": 1072629894720278699,
+    "Bruno": 1072630030309527694,
+    "Rafael": 1350639643422490664,
+    "Rodrigo": 1077604527978586162,
+    "Tomás": 1394275087162806314
+}
 
 LORE = """
 - Floquita (cadela do Bruno)
@@ -149,18 +155,17 @@ async def tarefa_principal():
 
     try:
         response = gemini.generate_content(prompt)
-        question_text = response.text.strip()
-        answers = AMIGOS
     except Exception as e:
         print(f"gemini error: {e}")
-        question_text = "Quem é mais provável ter parado de funcionar hoje?"
-        answers = ["Gemini", "Geminii", "Geminiii", "Geminiiii", "Geminiiiii"]
+        return
+    
+    question_text = response.text.strip()
 
     print(f">> creating poll: {question_text}")
     poll = discord.Poll(question=question_text,duration=datetime.timedelta(hours=23))
 
-    for answer in answers:
-        poll.add_answer(text=answer)
+    for gajo, emojo in AMIGOS.items():
+        poll.add_answer(text=gajo,emoji=emojo)
         
     await channel.send(poll=poll)
 
