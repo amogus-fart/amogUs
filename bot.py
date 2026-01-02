@@ -165,7 +165,7 @@ async def tarefa_principal():
     poll = discord.Poll(question=question_text,duration=datetime.timedelta(hours=23))
 
     for gajo, emojo in AMIGOS.items():
-        emoji = discord.PartialEmoji(id=emojo)
+        emoji = discord.PartialEmoji(name="gajo",id=emojo)
         poll.add_answer(text=gajo,emoji=emoji)
         
     await channel.send(poll=poll)
