@@ -13,11 +13,11 @@ CHANNEL_ID = int(os.environ["CHANNEL_ID"])
 GOOGLE_CREDS_JSON = os.environ["GOOGLE_CREDS_JSON"]
 
 AMIGOS = {
-    "Bernardo": "1072629894720278699",
-    "Bruno": "1072630030309527694",
-    "Rafael": "1350639643422490664",
-    "Rodrigo": "1077604527978586162",
-    "Tomás": "1394275087162806314"
+    "Bernardo": 1072629894720278699,
+    "Bruno": 1072630030309527694,
+    "Rafael": 1350639643422490664,
+    "Rodrigo": 1077604527978586162,
+    "Tomás": 1394275087162806314
 }
 
 LORE = """
@@ -165,7 +165,8 @@ async def tarefa_principal():
     poll = discord.Poll(question=question_text,duration=datetime.timedelta(hours=23))
 
     for gajo, emojo in AMIGOS.items():
-        poll.add_answer(text=gajo,emoji=emojo)
+        emoji = discord.PartialEmoji(id=emojo)
+        poll.add_answer(text=gajo,emoji=emoji)
         
     await channel.send(poll=poll)
 
